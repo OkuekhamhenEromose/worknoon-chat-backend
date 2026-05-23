@@ -1,0 +1,83 @@
+version: '3.9'
+
+services:
+  # ─── Backend API ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: worknoon-api
+    ports:
+      - '5000:5000'
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/worknoon_chat
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_in_production
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      CLIENT_URL: http://localhost:3000
+      UPLOAD_PATH: ./uploads
+    volumes:
+      - ./src:/app/src          # Hot reload in dev
+      - ./uploads:/app/uploads  # Persist uploads
+      - ./logs:/app/logs
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: npm run dev
+
+  # ─── MongoDB ──────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: worknoon-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: worknoon-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ─── Mongo Express (Dev UI) ───────────────────────────────────────────────
+  mongo-express:
+    image: mongo-express:latest
+    container_name: worknoon-mongo-ui
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    profiles:
+      - dev-tools
+
+volumes:
+  mongo_data:
+  redis_data:

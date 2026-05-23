@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Uploads (store in S3/Cloudinary in production)
+uploads/*
+!uploads/.gitkeep
+
+# Build artifacts
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Test coverage
+coverage/
+
+# PM2
+.pm2/
+ecosystem.config.js
