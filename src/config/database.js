@@ -6,7 +6,7 @@
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/worknoon_chat';
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/worknoon_chat';
 
 const options = {
   maxPoolSize: 10,
