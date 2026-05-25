@@ -34,6 +34,6 @@ coverage/
 .pm2/
 ecosystem.config.js
 
-
+.env
 
 # give complete file structure for the project and Describe what each file performs in this project after explaining for files in the frontend project ""
