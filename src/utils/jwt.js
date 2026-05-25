@@ -5,20 +5,15 @@
 
 const jwt = require('jsonwebtoken');
 
-const {
-  JWT_SECRET,
-  JWT_EXPIRES_IN,
-  JWT_REFRESH_SECRET,
-  JWT_REFRESH_EXPIRES_IN,
-} = process.env;
-
 /**
  * Generate a short-lived access token
  * @param {Object} payload - { id, role }
  */
 function generateAccessToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN || '15m',
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not defined in environment variables');
+  return jwt.sign(payload, secret, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '1d',
     issuer: 'worknoon-chat',
     audience: 'worknoon-client',
   });
@@ -29,8 +24,10 @@ function generateAccessToken(payload) {
  * @param {Object} payload - { id }
  */
 function generateRefreshToken(payload) {
-  return jwt.sign({ id: payload.id }, JWT_REFRESH_SECRET, {
-    expiresIn: JWT_REFRESH_EXPIRES_IN || '7d',
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (!secret) throw new Error('JWT_REFRESH_SECRET is not defined in environment variables');
+  return jwt.sign({ id: payload.id }, secret, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
     issuer: 'worknoon-chat',
     audience: 'worknoon-client',
   });
@@ -42,7 +39,9 @@ function generateRefreshToken(payload) {
  * @returns decoded payload or throws
  */
 function verifyAccessToken(token) {
-  return jwt.verify(token, JWT_SECRET, {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not defined in environment variables');
+  return jwt.verify(token, secret, {
     issuer: 'worknoon-chat',
     audience: 'worknoon-client',
   });
@@ -54,7 +53,9 @@ function verifyAccessToken(token) {
  * @returns decoded payload or throws
  */
 function verifyRefreshToken(token) {
-  return jwt.verify(token, JWT_REFRESH_SECRET, {
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (!secret) throw new Error('JWT_REFRESH_SECRET is not defined in environment variables');
+  return jwt.verify(token, secret, {
     issuer: 'worknoon-chat',
     audience: 'worknoon-client',
   });
@@ -68,7 +69,7 @@ function setRefreshTokenCookie(res, token) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 

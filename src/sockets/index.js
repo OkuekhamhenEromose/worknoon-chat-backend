@@ -12,36 +12,41 @@ const logger = require('../utils/logger');
 let io = null;
 
 // In-memory presence map: userId → Set of socketIds
-// In production with Redis adapter, this is distributed
 const presenceMap = new Map();
 
 function initSocket(server) {
   io = new Server(server, {
     cors: {
       origin: [
-        process.env.CLIENT_URL || 'http://localhost:3000',
+        process.env.CLIENT_URL  || 'http://localhost:3000',
         process.env.WORDPRESS_URL || 'http://localhost:8080',
       ],
       credentials: true,
       methods: ['GET', 'POST'],
     },
-    pingTimeout: 60000,
+    pingTimeout:  60000,
     pingInterval: 25000,
     transports: ['websocket', 'polling'],
   });
 
   // ── Try to attach Redis adapter ─────────────────────────────────────────
+  // Only attach if both clients exist AND are actually ready.
+  // If Redis was unavailable during bootstrap, getRedisPublisher/Subscriber
+  // return null and we fall through to the in-memory adapter silently.
   try {
-    const { createAdapter } = require('@socket.io/redis-adapter');
     const { getRedisPublisher, getRedisSubscriber } = require('../config/redis');
     const pub = getRedisPublisher();
     const sub = getRedisSubscriber();
-    if (pub && sub) {
+
+    if (pub && sub && pub.isReady && sub.isReady) {
+      const { createAdapter } = require('@socket.io/redis-adapter');
       io.adapter(createAdapter(pub, sub));
       logger.info('Socket.IO using Redis adapter');
+    } else {
+      logger.warn('Socket.IO using in-memory adapter (Redis unavailable — single instance only)');
     }
-  } catch (_) {
-    logger.warn('Socket.IO using in-memory adapter (single instance only)');
+  } catch (err) {
+    logger.warn(`Socket.IO using in-memory adapter (adapter error: ${err.message})`);
   }
 
   // ── JWT Authentication Middleware ───────────────────────────────────────
@@ -86,7 +91,7 @@ function initSocket(server) {
     // Broadcast online status to contacts
     socket.broadcast.emit('user:online', {
       userId,
-      name: socket.user.name,
+      name:         socket.user.name,
       profileImage: socket.user.profileImage,
     });
 
@@ -105,7 +110,6 @@ function initSocket(server) {
         if (sockets.size === 0) {
           presenceMap.delete(userId);
 
-          // All sockets for this user gone — mark offline
           await User.findByIdAndUpdate(userId, {
             isOnline: false,
             lastSeen: new Date(),
@@ -120,7 +124,7 @@ function initSocket(server) {
     });
 
     socket.on('error', (err) => {
-      logger.error(`Socket error [${socket.id}]:`, err.message);
+      logger.error(`Socket error [${socket.id}]: ${err.message}`);
     });
   });
 
