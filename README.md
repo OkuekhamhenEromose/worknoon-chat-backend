@@ -4,6 +4,45 @@ Real-time chat API for the Worknoon eCommerce platform — built with **Node.js*
 
 ---
 
+## Demo Walkthrough
+
+🎥 **Frontend Demo Video**
+
+Watch the full implementation walkthrough here:
+
+**Loom:** https://www.loom.com/share/033dfeb161ca406793f939a203976388
+
+### Walkthrough Covers
+
+- Authentication flow and role selection
+- Real-time messaging with Socket.IO
+- Inbox and chat experience
+- Typing indicators and online presence
+- File upload support
+- Notifications system
+- Profile management
+- Admin dashboard analytics
+- Dark/light theme switching
+- Offline support through Service Worker
+- Frontend architecture and design decisions
+
+---
+
+## Project Goal
+
+The goal of this frontend implementation is to provide a clean, responsive, and scalable chat experience suitable for an eCommerce environment where customers, agents, merchants, and designers can communicate in real time.
+
+The application focuses on:
+
+- Performance
+- Responsive UX
+- Authentication and security
+- Real-time interactions
+- Maintainable architecture
+- Accessibility and scalability
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
